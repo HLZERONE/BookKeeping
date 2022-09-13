@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/cyanBlue"
+    tools:context=".fragment.JournalFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/HomeBalanceShowing"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:background="@color/moonWhite"
+        android:layout_marginTop="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/JournalBalance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="10dp"
+            android:fontFamily="@font/jaldi"
+            android:textColor="@color/darkBlue"
+            android:textSize="20dp"
+            android:textStyle="normal"
+            android:alpha="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:text="Total Balance"
+            />
+
+        <TextView
+            android:id="@+id/JournalAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/jaldi"
+            android:textColor="@color/darkBlue"
+            android:textSize="40dp"
+            android:textStyle="normal"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@id/JournalBalance"
+            app:layout_constraintVertical_bias="0.5"
+            tools:text="$ 3000.23"/>
+
+        <TextView
+            android:id="@+id/JournalMonth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:fontFamily="@font/jaldi"
+            android:textColor="@color/darkBlue"
+            android:textSize="20dp"
+            app:layout_constraintStart_toStartOf="@id/JournalAmount"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:text="09/10/2022" />
+
+        <View
+            android:id="@+id/JournalExpenseOval"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/JournalAmount"
+            app:layout_constraintVertical_bias="0.3"
+            app:layout_constraintHorizontal_bias="0.2"
+            android:background="@drawable/expense_oval">
+        </View>
+
+        <TextView
+            android:id="@+id/JournalExpense"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/jaldi"
+            android:textColor="@color/darkBlue"
+            app:layout_constraintTop_toTopOf="@id/JournalExpenseOval"
+            app:layout_constraintBottom_toBottomOf="@id/JournalExpenseOval"
+            app:layout_constraintStart_toEndOf = "@id/JournalExpenseOval"
+            android:layout_marginStart="10dp"
+            android:textSize="20dp"
+            android:alpha="0.5"
+            android:text="Expense"
+            />
+
+        <TextView
+            android:id="@+id/JournalExpenseAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/jaldi"
+            android:textColor="@color/darkBlue"
+            app:layout_constraintTop_toTopOf="@id/JournalExpenseOval"
+            app:layout_constraintBottom_toBottomOf="@id/JournalExpenseOval"
+            app:layout_constraintStart_toEndOf = "@id/JournalExpense"
+            android:layout_marginStart="15dp"
+            android:textSize="20dp"
+            tools:text="$ 1200.00" />
+
+        <View
+            android:id="@+id/JournalSaveOval"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/JournalExpenseOval"
+            app:layout_constraintVertical_bias="0.7"
+            android:background="@drawable/save_oval">
+        </View>
+
+        <TextView
+            android:id="@+id/JournalSave"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/jaldi"
+            android:textColor="@color/darkBlue"
+            app:layout_constraintTop_toTopOf="@id/JournalSaveOval"
+            app:layout_constraintBottom_toBottomOf="@id/JournalSaveOval"
+            app:layout_constraintStart_toStartOf="@+id/JournalExpense"
+            android:textSize="20dp"
+            android:alpha="0.5"
+            android:text="Save"
+            />
+
+        <TextView
+            android:id="@+id/JournalSaveAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/jaldi"
+            android:textColor="@color/darkBlue"
+            app:layout_constraintTop_toTopOf="@id/JournalSaveOval"
+            app:layout_constraintBottom_toBottomOf="@id/JournalSaveOval"
+            app:layout_constraintStart_toStartOf="@+id/JournalExpenseAmount"
+            android:textSize="20dp"
+            tools:text="$ 1200.00" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="50dp"
+        app:layout_constraintTop_toBottomOf="@id/HomeBalanceShowing"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:background="@color/moonWhite">
+
+        <Switch
+            android:id="@+id/pieChartSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="10dp"
+            android:fontFamily="@font/jaldi"
+            android:textColor="@color/darkBlue"
+            android:textSize="15dp"
+            android:text="Expense "
+            />
+
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChart"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintTop_toBottomOf="@id/pieChartSwitch"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginHorizontal="10dp"
+            >
+        </com.github.mikephil.charting.charts.PieChart>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
