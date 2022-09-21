@@ -4,7 +4,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -14,10 +18,13 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.bookkeeping.fragment.HomeFragment;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.text.ParseException;
@@ -30,6 +37,7 @@ import java.util.List;
 public class AddActivity extends AppCompatActivity implements DatePickerDialog.OnDateSetListener {
 
     boolean isExpense;
+    boolean NewJournal;
     private final String TAG = "AddActivity";
 
     EditText addAmount;
@@ -37,17 +45,21 @@ public class AddActivity extends AppCompatActivity implements DatePickerDialog.O
     GridView gridView;
     FloatingActionButton addFab;
     Button datePickerButton;
+    ChipGroup CategoryIconGroup;
+    TextView newCategoryName;
+    ImageView addCategoryButton;
 
     List<Category> categoryList;
     CategoryAdapter categoryAdapter;
     JournalDatabase journalDatabase;
 
     int backPosition = -1;
+    int id = -1;
     String categoryName = "Unknown/Others"; //default category
     Date dateTime = new Date();
-    int year = Calendar.getInstance().get(Calendar.YEAR);
-    int month = Calendar.getInstance().get(Calendar.MONTH);
-    int day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+    int year;
+    int month;
+    int day;
 
 
     @Override
@@ -66,6 +78,7 @@ public class AddActivity extends AppCompatActivity implements DatePickerDialog.O
         gridView = findViewById(R.id.gridView);
         addFab = findViewById(R.id.addFab);
         datePickerButton = findViewById(R.id.datePickerButton);
+        addCategoryButton = findViewById(R.id.addCategoryButton);
 
         //Assign adapter into gridView
         categoryList = new ArrayList<>();
@@ -102,6 +115,53 @@ public class AddActivity extends AppCompatActivity implements DatePickerDialog.O
             }
         });
 
+        //DELETE category item if long click
+        gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                String categoryName = categoryList.get(i).getCategoryName();
+                if(categoryName != null){
+                    new AlertDialog.Builder(AddActivity.this)
+                            .setIcon(R.drawable.warning)
+                            .setTitle("Are you sure?")
+                            .setMessage("Do you definitely want to delete the category " + categoryName + " ?")
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialogInterface, int place) {
+                                    if(isExpense){
+                                        journalDatabase.deleteExpenseCategoriesData(categoryName);
+                                    }else{
+                                        journalDatabase.deleteSaveCategoriesData(categoryName);
+                                    }
+                                    categoryList.remove(i);
+                                    categoryAdapter.notifyDataSetChanged();
+                                }
+                            })
+                            .setNegativeButton("No", null)
+                            .show();
+                }
+                return false;
+            }
+        });
+
+        //Check if create or edit journal
+        NewJournal = getIntent().getBooleanExtra(HomeFragment.NewJournal, true);
+        if(!NewJournal){
+            this.id = getIntent().getIntExtra("id", -1);
+            categoryName = getIntent().getStringExtra("category");
+            dateTime = (Date) getIntent().getSerializableExtra("date");
+            addComment.setText(getIntent().getStringExtra("comment"));
+            addAmount.setText(String.valueOf(getIntent().getDoubleExtra("amount", 0)));
+            addFab.setImageResource(R.drawable.ic_check);
+        }
+
+        //Find year, month, day by dateTime(Date)
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(dateTime);
+        year = cal.get(Calendar.YEAR);
+        month = cal.get(Calendar.MONTH);
+        day = cal.get(Calendar.DAY_OF_MONTH);
+
         //datePickerButton OnClick, pick a date
         //DEFAULT: today
         String selectedDateString = year + "-" + (month+1) + "-" + day;
@@ -122,6 +182,34 @@ public class AddActivity extends AppCompatActivity implements DatePickerDialog.O
             }
         });
 
+        //Place cursor at the end of EditText
+        addAmount.setSelection(addAmount.getText().length());
+        addComment.setSelection(addComment.getText().length());
+
+        //AddCategoryButton Listener
+        addCategoryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(AddActivity.this);
+                builder.setPositiveButton("Add", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        addNewCategory();
+                        dialog.dismiss();
+                    }
+                });
+                builder.setNegativeButton("Cancel", null);
+                final AlertDialog dialog = builder.create();
+
+                View dialogView = View.inflate(AddActivity.this, R.layout.add_category_view, null);
+                CategoryIconGroup = dialogView.findViewById(R.id.CategoryIconGroup);
+                newCategoryName = dialogView.findViewById(R.id.newCategoryName);
+
+                dialog.setTitle("Add A New Category");
+                dialog.setView(dialogView);
+                dialog.show();
+            }
+        });
     }
 
     //Back Button
@@ -161,7 +249,7 @@ public class AddActivity extends AppCompatActivity implements DatePickerDialog.O
     }
 
     //Add a new Expense/Save
-    public void add(){
+    private void add(){
         String addAmountString = addAmount.getText().toString();
         //Check Amount: Empty, equal to 0
         if(addAmountString == null || addAmountString.length() <= 0){
@@ -176,12 +264,92 @@ public class AddActivity extends AppCompatActivity implements DatePickerDialog.O
         String comment = addComment.getText().toString(); //Comment
 
         //Adding new Journal to DataBase
-        if(isExpense){
-            journalDatabase.insertJournalData(0, amount, comment, categoryName, dateTime);
+        if(NewJournal){
+            if(isExpense){
+                journalDatabase.insertJournalData(0, amount, comment, categoryName, dateTime);
+            }
+            else{
+                journalDatabase.insertJournalData(amount, 0, comment, categoryName, dateTime);
+            }
         }
         else{
-            journalDatabase.insertJournalData(amount, 0, comment, categoryName, dateTime);
+            if(id == -1){
+                Toast.makeText(this, "Fail to update", Toast.LENGTH_SHORT).show();
+            }
+            else if(isExpense){
+                journalDatabase.updateJournalData(id, 0, amount, comment, categoryName, dateTime);
+            }
+            else{
+                journalDatabase.updateJournalData(id, amount, 0, comment, categoryName, dateTime);
+            }
         }
         finish();
+    }
+
+    //Add New Category
+    private void addNewCategory(){
+        String categoryName = newCategoryName.getText().toString();
+        if(categoryName == null || categoryName.equals("")){
+            Toast.makeText(AddActivity.this, "Fail to add. Category name cannot be empty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int chipId = CategoryIconGroup.getCheckedChipId();
+        int imageId = -1;
+        //Modify if adding more chip icons!
+        switch(chipId){
+            case R.id.icon1:
+                imageId = R.drawable.shopping_1;
+                break;
+            case R.id.icon2:
+                imageId = R.drawable.food_and_drinks_2;
+                break;
+            case R.id.icon3:
+                imageId = R.drawable.housing_and_utility_3;
+                break;
+            case R.id.icon4:
+                imageId = R.drawable.transportation_4;
+                break;
+            case R.id.icon5:
+                imageId = R.drawable.baby_5;
+                break;
+            case R.id.icon6:
+                imageId = R.drawable.salary_6;
+                break;
+            case R.id.icon7:
+                imageId = R.drawable.investment_7;
+                break;
+            case R.id.icon8:
+                imageId = R.drawable.sold_items_8;
+                break;
+            case R.id.icon9:
+                imageId = R.drawable.building_9;
+                break;
+            case R.id.icon10:
+                imageId = R.drawable.drugs_10;
+                break;
+            case R.id.icon11:
+                imageId = R.drawable.gift_11;
+                break;
+            case R.id.icon12:
+                imageId = R.drawable.insurance_12;
+                break;
+            case R.id.icon13:
+                imageId = R.drawable.party_popper_13;
+                break;
+            case R.id.icon14:
+                imageId = R.drawable.pet_house_14;
+                break;
+            default:
+                imageId = R.drawable.others_0;
+        }
+        //Add new category to database
+        if(isExpense){
+            journalDatabase.insertExpenseCategoriesData(categoryName, imageId);
+        }else{
+            journalDatabase.insertSaveCategoriesData(categoryName, imageId);
+        }
+        categoryList.add(new Category(categoryName, imageId));
+        categoryAdapter.notifyDataSetChanged();
     }
 }

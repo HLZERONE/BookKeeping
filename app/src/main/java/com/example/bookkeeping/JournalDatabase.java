@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -127,7 +128,6 @@ public class JournalDatabase extends SQLiteOpenHelper {
     }
 
     //delete a journal by id
-    //TODO: POP UP WARNING WINDOW BEFORE DELETE IT
     public boolean deleteJournalData(int id){
         SQLiteDatabase DB = this.getWritableDatabase();
         Cursor cursor = DB.rawQuery("SELECT * FROM "+ TABLE_NAME_JOURNALS +" WHERE id = ?", new String[]{String.valueOf(id)});
@@ -149,27 +149,42 @@ public class JournalDatabase extends SQLiteOpenHelper {
     }
 
     //Calculating sum of all expense, if date == "", calculate all
-    public double getExpenseBalance(String beforeDate, String categoryName){
+    public double getExpenseBalance(String beforeDate, String afterDate, String categoryName){
         double result = 0;
 
         SQLiteDatabase db = this.getReadableDatabase();
         String sqlStatement = "SELECT SUM(" +COL_EXPENSE_AMOUNT+ ") FROM " + TABLE_NAME_JOURNALS;
-        String[] selectionArgs = null;
 
-        if(!beforeDate.equals("") && !categoryName.equals("")){
-            sqlStatement += " WHERE date("+ COL_DATE +") >= date(?) AND "+ COL_CATEGORY + " = ?";
-            selectionArgs = new String[]{beforeDate, categoryName};
+        ArrayList<String> args = new ArrayList<>();
+        if(!beforeDate.equals("")){
+            if(args.size() == 0){
+                sqlStatement += " WHERE date("+ COL_DATE +") <= date(?)";
+            }
+            else{
+                sqlStatement += " AND date(" + COL_DATE + ") <= date(?)";
+            }
+            args.add(beforeDate);
         }
-        else if(!beforeDate.equals("")){
-            sqlStatement += " WHERE date("+ COL_DATE +") >= date(?)";
-            selectionArgs = new String[]{beforeDate};
+        if(!afterDate.equals("")){
+            if(args.size() == 0){
+                sqlStatement += " WHERE date("+ COL_DATE +") >= date(?)";
+            }
+            else{
+                sqlStatement += " AND date(" + COL_DATE + ") >= date(?)";
+            }
+            args.add(afterDate);
         }
-        else if(!categoryName.equals("")){
-            sqlStatement += " WHERE " + COL_CATEGORY + " = ?";
-            selectionArgs = new String[]{categoryName};
+        if(!categoryName.equals("")){
+            if(args.size() == 0){
+                sqlStatement += " WHERE " + COL_CATEGORY + " = ?";
+            }
+            else{
+                sqlStatement += " AND " + COL_CATEGORY + " = ?";
+            }
+            args.add(categoryName);
         }
 
-        Cursor cursor = db.rawQuery(sqlStatement, selectionArgs);
+        Cursor cursor = db.rawQuery(sqlStatement, args.toArray(new String[args.size()]));
         if(cursor.moveToFirst()){
             result = cursor.getDouble(0);
         }
@@ -179,27 +194,42 @@ public class JournalDatabase extends SQLiteOpenHelper {
     }
 
     //Calculating sum of all save, if date == "", calculate all
-    public double getSaveBalance(String beforeDate , String categoryName){
+    public double getSaveBalance(String beforeDate, String afterDate , String categoryName){
         double result = 0;
 
         SQLiteDatabase db = this.getReadableDatabase();
         String sqlStatement = "SELECT SUM(" +COL_SAVE_AMOUNT+ ") FROM " + TABLE_NAME_JOURNALS;
-        String[] selectionArgs = null;
 
-        if(!beforeDate.equals("") && !categoryName.equals("")){
-            sqlStatement += " WHERE date("+ COL_DATE +") >= date(?) AND "+ COL_CATEGORY + " = ?";
-            selectionArgs = new String[]{beforeDate, categoryName};
+        ArrayList<String> args = new ArrayList<>();
+        if(!beforeDate.equals("")){
+            if(args.size() == 0){
+                sqlStatement += " WHERE date("+ COL_DATE +") <= date(?)";
+            }
+            else{
+                sqlStatement += " AND date(" + COL_DATE + ") <= date(?)";
+            }
+            args.add(beforeDate);
         }
-        else if(!beforeDate.equals("")){
-            sqlStatement += " WHERE date("+ COL_DATE +") >= date(?)";
-            selectionArgs = new String[]{beforeDate};
+        if(!afterDate.equals("")){
+            if(args.size() == 0){
+                sqlStatement += " WHERE date("+ COL_DATE +") >= date(?)";
+            }
+            else{
+                sqlStatement += " AND date(" + COL_DATE + ") >= date(?)";
+            }
+            args.add(afterDate);
         }
-        else if(!categoryName.equals("")){
-            sqlStatement += " WHERE " + COL_CATEGORY + " = ?";
-            selectionArgs = new String[]{categoryName};
+        if(!categoryName.equals("")){
+            if(args.size() == 0){
+                sqlStatement += " WHERE " + COL_CATEGORY + " = ?";
+            }
+            else{
+                sqlStatement += " AND " + COL_CATEGORY + " = ?";
+            }
+            args.add(categoryName);
         }
 
-        Cursor cursor = db.rawQuery(sqlStatement, selectionArgs);
+        Cursor cursor = db.rawQuery(sqlStatement, args.toArray(new String[args.size()]));
         if(cursor.moveToFirst()){
             result = cursor.getDouble(0);
         }
@@ -285,10 +315,10 @@ public class JournalDatabase extends SQLiteOpenHelper {
     }
 
     //find the imageId by category name and if it is expense(True) or save(False)
-    //ASSUMPTION: CATEGORY NAME EXITS
+    //ASSUMPTION: CATEGORY NAME MAY NOT EXITS, DEFAULT: others icon
     public int findImageId(String category, boolean isExpense){
         SQLiteDatabase db = getWritableDatabase();
-        int imageId = 0;
+        int imageId = R.drawable.others_0;
         if(isExpense){
             Cursor cursor = db.rawQuery("SELECT " + COL_IMAGE_ID + " FROM " + TABLE_EXPENSE_CATEGORY + " WHERE " + COL_CATEGORY + "=?", new String[]{category});
             if(cursor.moveToFirst()){
@@ -308,18 +338,26 @@ public class JournalDatabase extends SQLiteOpenHelper {
     }
 
     //query journal and return list of Journal object, start at row offset+1
-    public List<Journal> queryJournal(int offset){
+    public List<Journal> queryJournal(int offset, String startDate){
         List<Journal> journals = new ArrayList<>();
 
         SQLiteDatabase db = getReadableDatabase();
         /*
         SELECT *
         FROM journals
+        WHERE date(dateColumn) <= date(?) <--OPTIONAL
         ORDER BY dateColumn DESC
         LIMIT 20 OFFSET offset
          */
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_NAME_JOURNALS
-                + " ORDER BY " + COL_DATE + " DESC LIMIT 20 OFFSET ?", new String[]{String.valueOf(offset)});
+        String sqlStatement = "SELECT * FROM " + TABLE_NAME_JOURNALS;
+        String[] args = new String[]{String.valueOf(offset)};
+        if(!startDate.equals("")){
+            sqlStatement += " WHERE date(" + COL_DATE + ") <= date(?)";
+            args = new String[]{startDate, String.valueOf(offset)};
+        }
+        sqlStatement += " ORDER BY " + COL_DATE + " DESC LIMIT 20 OFFSET ?";
+
+        Cursor cursor = db.rawQuery(sqlStatement, args);
         if(cursor.moveToFirst()){
             //assign index value
             int idIndex = cursor.getColumnIndex(COL_ID);

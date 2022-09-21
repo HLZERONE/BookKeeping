@@ -48,6 +48,19 @@
         android:textStyle="italic|bold"
         android:textSize="20dp"/>
 
+
+
+    <ImageView
+        android:id="@+id/addCategoryButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/ic_add_category_image_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/addCategoryText"
+        app:layout_constraintBottom_toBottomOf="@id/addCategoryText"
+        android:layout_marginEnd="15dp"
+        android:clickable="true"/>
+
     <GridView
         android:id="@+id/gridView"
         android:layout_width="match_parent"
@@ -66,15 +79,16 @@
         android:id="@+id/addComment"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
         android:hint="Comment..."
         android:inputType="textPersonName"
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginTop="20dp"
+        android:minHeight="48dp"
         android:padding="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/gridView"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@+id/gridView" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addFab"
@@ -95,8 +109,9 @@
         app:layout_constraintTop_toBottomOf="@id/addComment"
         app:layout_constraintEnd_toEndOf="@id/addComment"
         android:layout_marginTop="10dp"
-        android:text="DATE: 2017-09-28"
+        tools:text="DATE: 2017-09-28"
         android:padding="10dp"
         android:background="@drawable/date_picker_button_shape"/>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
